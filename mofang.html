@@ -1,0 +1,467 @@
+﻿<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>魔方在线出题 在线计时器</title>
+</head>
+<link rel="stylesheet" href="css/w3.css">
+<style type="text/css">
+td,input,th,span{font:9pt verdana;}
+div.text{
+	margin-bottom: 5px;
+	font-size:10pt;
+}
+td.text1{
+
+	font-size:10pt;
+}
+input.btn
+{ padding-left:2px;
+ padding-right:2px;
+  width:86px;
+}
+input.btn1
+{ padding-left:2px;
+ padding-right:2px;
+ width:168px;
+}
+input.btn2
+{ padding-left:2px;
+ padding-right:2px;
+  width:106px;
+ 
+}
+}
+</style>
+<body onkeyup="keyUp(event)"  onLoad="rndCube()">
+<script type="text/javascript">
+
+
+var then; //used by show()
+var nowDec;
+var nowBest;
+var nowWorst;
+var running=0;// stopwatch status
+var timeint;
+var i=0;
+
+var totalsec;
+var sec;
+var min;
+var subsec;
+var secdis;
+var mindis;
+var subsecdis;// the var above used by show(), is pretty much temp vars
+
+var datas=new Array()// store the records
+var nowSecondes;
+var Max=25; //random cube steps
+var arr=new Array();//random cube array
+var myinterval=20; //interval for ie
+if (navigator.userAgent.indexOf("Gecko")>-1) myinterval=10;
+
+function keyUp(event)
+{
+	if (event.keyCode==32)
+	{
+		if(running == 1)
+		{
+		stop();
+		}
+		else
+		{
+		begin();
+		}
+	}
+	else if(event.keyCode == 13)
+	{
+	rndCube();
+	}
+}
+function stop()// handle the keyup event
+{
+	if(running==1)
+	{
+	clearTimeout(timeint);
+	ShowDatas(toSeconds(nowSeconds));
+	document.getElementById("watch").innerHTML="00:00.00";
+	running=0;
+	}
+}
+function toSeconds(dec)// convert the stopwatch display text to seconds
+{	var Ms;
+	var tmpDec=dec.split(":");
+	if(tmpDec[0]*10/10>0)
+	{
+		Ms=tmpDec[0]*60;
+		return (Ms+tmpDec[1]*10/10);
+	}else{
+		return (tmpDec[1]*10/10);
+		}
+	
+}
+function begin() // handle the keydown and reset event
+{
+	if(running==0)
+	{
+		then=new Date();
+		show();
+		running=1;
+	}
+}
+var a=0;
+function ShowDatas(dec) //push the record in array, display the nowBest and nowWorst and display the record table
+{
+	if(dec==0){return false;}
+	if (dec!=-1)
+	{
+	var newDec=get2(dec);
+	datas.push(newDec);	
+	}
+	
+	SortDatas();
+
+	//ShowDetails();
+	ShowNewDetails();
+    var tempstraa=(datas.length!=0)?sec2minsec(nowBest):"";
+	spanBest.innerHTML="<b style=color:red>"+tempstraa+"</b>";
+     tempstraa=(datas.length!=0)?sec2minsec(nowWorst):"";
+	spanWorst.innerHTML="<b>"+tempstraa+"</b>";
+	var tmp1=0;
+	for(i=0;i<datas.length;i++)
+	{
+		tmp1+=datas[i];
+	}
+	tempstraa=(datas.length!=0)?sec2minsec(get2(tmp1/datas.length)):"";
+
+	spanAv.innerHTML="<b>"+tempstraa+"</b>";
+	 
+}
+
+function sec2minsec(n)// convert the seconds number in to **:**.** text format
+{       if (n>60)
+        {
+        var tmpmins=Math.floor(n/60);
+		var	tmpseconds=get2(n-tmpmins*60);
+		var tmpstring;
+		if (tmpseconds<10)
+		{  tmpstring=tmpmins+":0"+tmpseconds;
+		}
+	   else  tmpstring=tmpmins+":"+tmpseconds;
+	 return tmpstring;
+	 }
+	 else return n;
+}
+function ShowDetails() //display the record table
+{
+if(datas.length>12){a=datas.length -12;}
+var tmpTd="<table cellspacing=1 bgcolor=olive><tr align=center bgcolor='#EEEEEE'><td width=50>1</td><td width=50>2</td><td width=50>3</td><td width=50>4</td><td width=50>5</td>";
+	tmpTd+="<td width=50>6</td><td width=50>7</td><td width=50>8</td><td width=50>9</td><td width=50>10</td><td width=50>11</td><td width=50>12</td></tr><tr bgcolor=white>";
+	for(i=a;i<(12+a);i++)
+	{
+		
+		tmpTd+="<td align=center>";
+		if(datas[i]==undefined){tmpTd+="-";}
+		else
+		{	
+			if(datas[i]==nowBest)
+			{   
+
+				tmpTd+="<font color=red><b>"+sec2minsec(datas[i])+"*</b></font>";
+			}
+			else if (datas[i]==nowWorst)
+			{
+			tmpTd+="<font color=green>"+sec2minsec(datas[i])+"*</font>";
+
+			}
+			else
+			{  
+			  tmpTd+=sec2minsec(datas[i]); 
+			}
+		}	
+		tmpTd+="</td>";
+	}
+	tmpTd+="</tr></table>";
+	//alert(datas.join(","));
+	div1.innerHTML="";
+	div1.innerHTML=tmpTd;
+	rndCube();
+	
+}
+function ShowNewDetails() //display the records in new table
+{
+var len = datas.length;
+
+if(datas.length>12){a=datas.length -12;}
+var tmpTd="<table class=\"w3-table w3-bordered\"><tr class=\"w3-teal\"><th class=\"w3-xxlarge\">No.</th><th class=\"w3-xxlarge\">成绩</th></tr>";
+	var cnt=0;
+	var seq=0;
+	for(i=(len-1);i>-1&&cnt<100;i--)
+	{
+		
+		
+		
+		if(datas[i]==undefined){}
+		else
+		{	
+		cnt ++;
+		seq = i+1;
+		tmpTd+="<tr><td class=\"w3-xxlarge\">"+seq+"</td><td class=\"w3-xxlarge\" align=center>";
+			if(datas[i]==nowBest)
+			{   
+
+				tmpTd+="<font color=red><b>"+sec2minsec(datas[i])+"(最快)</b></font>";
+			}
+			else if (datas[i]==nowWorst)
+			{
+			tmpTd+="<font color=green>"+sec2minsec(datas[i])+"(最慢)</font>";
+
+			}
+			else
+			{  
+			  tmpTd+=sec2minsec(datas[i]); 
+			}
+		}	
+		tmpTd+="</td></tr>";
+	}
+	tmpTd+="</table>";
+	//alert(datas.join(","));
+	recordtable.innerHTML="";
+	recordtable.innerHTML=tmpTd;
+	rndCube();
+	
+}
+function show() //show the stopwatch display, will run every 20 or 10 ms
+{	var now=new Date();
+	diff=now.getTime()-then.getTime();
+	if (diff<1000)
+	{ mindis="00";
+	  secdis="00";
+	  subsec=Math.floor(diff/10);
+	    if (subsec<10)
+	   	subsecdis="0"+subsec;
+		else 
+		subsecdis=subsec;
+     }
+     else if (diff<60000)
+     {
+     mindis="00";
+     sec=Math.floor(diff/1000);
+        if(sec<10)
+	 	secdis="0"+sec;
+		else
+		secdis=sec;
+
+	 	subsec=Math.floor((diff%1000)/10);
+	    if (subsec<10)
+	   	subsecdis="0"+subsec;
+		else 
+		subsecdis=subsec;
+     }
+	 else 
+	 {
+	 totalsec=Math.floor(diff/1000);//how many seconds?
+	 sec=totalsec%60; //how many seconds-60*n
+	   if(sec<10)
+	 	secdis="0"+sec;
+		else
+		secdis=sec;
+		
+	   min=(totalsec-sec)/60; //how many minutes?
+	   if (min<10)
+		mindis="0"+min;
+	    else
+		mindis=min;
+		
+	   subsec=Math.floor((diff%1000)/10);
+	    if (subsec<10)
+	   	subsecdis="0"+subsec;
+		else 
+		subsecdis=subsec;
+			
+	 }
+	 
+	 nowSeconds=mindis+":"+secdis+"."+subsecdis;
+	document.getElementById("watch").innerHTML=nowSeconds;
+	timeint=setTimeout("show()",myinterval)
+
+}
+		
+
+function get2(dec)
+{
+	return Math.round(dec*100)/100;
+}
+ 
+function SortDatas()//get max and min
+{
+	var tmpArr=new Array();
+	for(i=0;i<datas.length;i++)
+	{
+		tmpArr[i]=datas[i];
+	}
+	tmpArr.sort(function(a,b){ return a-b;});
+	nowBest=tmpArr[0];
+	nowWorst=tmpArr[tmpArr.length-1];
+	// ShowBestAv();
+}
+
+function mycls()// clear all records
+{	 
+	clearTimeout(timeint);
+	nowSeconds="00:00:00";
+	running=0;
+	datas=new Array(); 
+	ShowNewDetails();
+	document.getElementById("watch").innerHTML="00:00.00";
+
+}
+
+</script>
+<script type="text/javascript">
+function cancel()
+{   clearTimeout(timeint);
+
+	nowSeconds="00:00:00";
+	
+	running=0;
+	rndCube();
+	document.getElementById("watch").innerHTML="00:00.00";
+	
+	
+}
+function delrecord()
+{
+    clearTimeout(timeint);
+
+	nowSeconds="00:00:00";
+	running=0;
+	rndCube();
+	document.getElementById("watch").innerHTML="00:00.00";
+	datas.pop();
+	ShowDatas(-1);
+}
+function isslice(move1,move2)//to judge if 2 moves are slice moves.
+{if (Math.floor(move1/2)==Math.floor(move2/2)) return true;
+else return false;
+}
+function checkmove(move)
+{ 
+if (move==arr[arr.length-1]) return true;
+   else if (move==arr[arr.length-2] && isslice(move,arr[arr.length-1])) return true;
+   else return false;
+}
+
+
+function rndCube()
+{ 
+	var move="";
+	var rndMove=new Array("R","L","F","B","U","D");
+	var add=0;
+	var tmpRnd;
+    arr=new Array();
+	for (i=0;i<Max;i++)
+	{	do {
+		tmpRnd=Math.floor(Math.random()*6);
+        }
+        while (checkmove(tmpRnd))
+
+        arr.push(tmpRnd);
+	
+	}
+		for(i=0;i<arr.length;i++)
+		{
+			var tmp=Math.floor(Math.random()*5);
+			if(tmp==4)
+			{	move+=rndMove[arr[i]]+"2";}
+			else if(tmp==2 || tmp==3)
+			{	move+=rndMove[arr[i]]+"'";}
+            else 
+            {	move+=rndMove[arr[i]];}
+			move+=" ";
+		}
+		
+	
+		rndDiv.innerHTML=move;
+}
+
+function changebg(p)
+{
+for (i=1; i<4; i++)
+{
+document.getElementById("big"+i).style.color='blue';
+document.getElementById("big"+i).style.textDecoration='underline';
+document.getElementById("big"+i).style.backgroundColor='transparent';
+}
+document.getElementById("big"+p).style.color='black';
+document.getElementById("big"+p).style.textDecoration='none';
+document.getElementById("big"+p).style.backgroundColor='#FFCCFF';
+}
+
+function buttonstuff(p)
+{
+	document.getElementById(p).blur();
+	document.getElementById('watch').focus();
+}
+
+</script>
+<center>
+<div id="pc">
+<div id="watch" style="font-size:130px; font-family:Arial; font-weight:bold; color:navy; text-align:center" >00:00.00</div>
+<div id="rndDiv" style="margin-top:20px;font:25pt Arial;font-weight:bold"></div>
+
+
+<div class="w3-padding w3-center">
+<div class="w3-bar">
+   <button class="w3-button w3-green w3-xxlarge" onclick="begin()">开始计时（空格）</button>
+   <button class="w3-button w3-red w3-xxlarge"  onclick="stop()">停止（空格）</button>
+   <button class="w3-button w3-orange w3-xxlarge w3-padding"  onclick="rndCube()">刷新（回车）</button>
+</div>
+</div> 
+<div  class="w3-padding w3-center">
+<table class="w3-table w3-bordered">
+<tr class="w3-indigo">
+      <th class="w3-xxlarge">最快</th>
+      <th class="w3-xxlarge">最慢</th>
+	  <th class="w3-xxlarge">平均</th>
+</tr>
+<tr>
+<td><span id=spanBest class="text2  w3-xxlarge"></span></td>
+<td><span id=spanWorst class="text2 w3-xxlarge"></span></td>
+<td><span id=spanAv class="text2 w3-xxlarge"></span></td>
+</tr>
+</table></div>
+<div id="recordtable" class="w3-padding w3-center">
+  <table class="w3-table w3-bordered">
+    <tr class="w3-teal">
+      <th  class="w3-xxlarge">No.</th>
+      <th  class="w3-xxlarge">成绩</th>
+    </tr>
+  </table>
+</div>
+<div class="w3-padding w3-bar">
+<input type='button' class="w3-button w3-indigo w3-xxlarge" value="删除记录" id="delrecord1"  onclick="delrecord();buttonstuff('delrecord1');">
+<input type='button' class="w3-button w3-indigo w3-xxlarge" value="清空记录" id="clear1" onClick="mycls();buttonstuff('clear1')">
+</div>
+
+</div>
+
+</center>
+
+  <script type="text/javascript">
+document.getElementById("watch").focus();
+document.getElementById("big2").style.color='black';
+document.getElementById("big2").style.textDecoration='none';
+document.getElementById("big2").style.backgroundColor='#FFCCFF';
+if (testmobile()) 	{
+
+	document.getElementById('pc').style.display="none";
+	
+	 }
+	 else {
+		 	document.getElementById('mobi').style.display="none";
+		
+	 }
+</script>
+</body>
+</html>
+
